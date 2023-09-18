@@ -88,21 +88,7 @@ public class Assembler {
             int field0Shift = 19;
             int field1Shift = 16;
             int field2Shift = 0;
-            short opcode;
-            String operator = tokens[1].strip().toUpperCase();
-            switch (operator) {
-                case "ADD" -> opcode = 0b000;
-                case "NAND" -> opcode = 0b001;
-                case "LW" -> opcode = 0b010;
-                case "SW" -> opcode = 0b011;
-                case "BEQ" -> opcode = 0b100;
-                case "JALR" -> opcode = 0b101;
-                case "HALT" -> opcode = 0b110;
-                case "NOOP" -> opcode = 0b111;
-                case ".FILL" -> opcode = -1;
-                case "" -> throw new UnknownInstruction("no operator found at line " + lineCount + ".");
-                default -> throw new UnknownInstruction("unknown operator \"" + tokens[1] + "\" at line " + lineCount + ".");
-            }
+            short opcode = getOpcode(tokens[1], lineCount);
 
             // O-type instructions
             if(opcode >= 0b110) {
@@ -111,26 +97,21 @@ public class Assembler {
                 continue;
             }
 
-            int i_field0 = variableInstance(tokens[2].strip(), lineCount);
+            int i_field0 = variableInstance(tokens, 2, lineCount);
 
             // .fill instruction
             if(opcode == -1) {
                 checkExcessTokens(tokens, 3, tokensLength, lineCount);
-
                 // Since i_field0 is already 32 bits, there is no need to check for overflow.
                 sb.append(i_field0).append('\n');
                 continue;
             }
 
-            int i_field1 = variableInstance(tokens[3].strip(), lineCount);
+            int i_field1 = variableInstance(tokens, 3, lineCount);
 
             // check for overflowing fields
-            if(i_field0 < 0 || i_field0 > 7)
-                throw new OverflowingField("overflowing field0 \"" + tokens[2] + "\" at line " + lineCount + "." +
-                        "The required field must be in between 0 and 7.");
-            if(i_field1 < 0 || i_field1 > 7)
-                throw new OverflowingField("overflowing field1 \"" + tokens[3] + "\" at line " + lineCount + "." +
-                        "The required field must be in between 0 and 7.");
+            checkOverflow(i_field0,0,7,tokens[2],lineCount);
+            checkOverflow(i_field1,0,7,tokens[3],lineCount);
             short field0 = (short) i_field0;
             short field1 = (short) i_field1;
 
@@ -146,26 +127,30 @@ public class Assembler {
             // I-type instructions
             if(opcode >= 0b010) {
                 int filter = 65535; // MAGIC!!!!
-                int field2 = variableInstance(tokens[4].strip(), lineCount, (opcode == 0b100));
+                int field2 = variableInstance(tokens, 4, lineCount, (opcode == 0b100));
                 // BEQ use field2 differently.
-                if(field2 < -32768 || field2 > 32767)
-                    throw new OverflowingField("overflowing field2 \"" + tokens[4] + "\" at line " + lineCount + ".\n" +
-                            "The required field for R-type instruction must be in between -32768 and 32676.");
+                checkOverflow(field2,-32768,32767,tokens[4], lineCount);
                 field2 &= filter;
                 sb.append(basicFields | (field2 << field2Shift)).append('\n');
                 continue;
             }
 
             // R-type instructions
-            int i_field2 = variableInstance(tokens[4].strip(), lineCount);
-            if(i_field2 < 0 || i_field2 > 7)
-                throw new OverflowingField("overflowing field2 \"" + tokens[4] + "\" at line " + lineCount + ".\n" +
-                        "The required field for R-type instruction must be in between 0 and 7.");
-            short field2 = (short) i_field2;
-            sb.append(basicFields | (field2 << field2Shift)).append('\n');
+            if(opcode >= 0b000) {
+                int i_field2 = variableInstance(tokens, 4, lineCount);
+                checkOverflow(i_field2, 0, 7, tokens[4], lineCount);
+                short field2 = (short) i_field2;
+                sb.append(basicFields | (field2 << field2Shift)).append('\n');
+                continue;
+            }
+
+            // Program should not reach here if opcode is decoded properly.
+            throw new UnknownInstruction("unexpected error has occurred during compilation.");
         }
+
+        // Remove the last \n
         if(sb.length() > 0)
-            sb.deleteCharAt(sb.length()-1); // Remove the last \n
+            sb.deleteCharAt(sb.length()-1);
 
         // Writing output file
         try {
@@ -177,30 +162,66 @@ public class Assembler {
         }
     }
 
-    private static int variableInstance(String str, int line, boolean isLabelRelative) throws UndefinedLabel {
+    private static int variableInstance(String[] tokens, int index, int lineCount, boolean isLabelRelative) throws UndefinedLabel {
+        String str;
+
+        // Missing operand (Array out of bound)
+        try {
+            str = tokens[index].strip();
+        } catch (ArrayIndexOutOfBoundsException ignore) {
+            throw new UndefinedLabel("missing operand at line " + lineCount + ".");
+        }
+
+        // Missing operand
         if(str.equals(""))
-            throw new UndefinedLabel("missing operand at line " + line + ".");
+            throw new UndefinedLabel("missing operand at line " + lineCount + ".");
 
         try {
             return Integer.parseInt(str);
-        }
-        catch (NumberFormatException ignored) {}
+        } catch (NumberFormatException ignored) {}
 
         Integer parsedLabel = labels.get(str);
         if (parsedLabel != null)
-            return parsedLabel - (isLabelRelative ? line : 0);
+            return parsedLabel - (isLabelRelative ? lineCount : 0);
 
-        throw new UndefinedLabel("undefined label \"" + str + "\" at line " + line + ".");
+        // Undefined label
+        throw new UndefinedLabel("undefined label \"" + str + "\" at line " + lineCount + ".");
     }
 
-    private static int variableInstance(String str, int line) throws UndefinedLabel {
-        return variableInstance(str,line,false);
+    private static short getOpcode(String operator, int lineCount) throws UnknownInstruction {
+        short opcode;
+        switch (operator.strip().toUpperCase()) {
+            case "ADD" -> opcode = 0b000;
+            case "NAND" -> opcode = 0b001;
+            case "LW" -> opcode = 0b010;
+            case "SW" -> opcode = 0b011;
+            case "BEQ" -> opcode = 0b100;
+            case "JALR" -> opcode = 0b101;
+            case "HALT" -> opcode = 0b110;
+            case "NOOP" -> opcode = 0b111;
+            case ".FILL" -> opcode = -1;
+            case "" -> throw new UnknownInstruction("no operator found at line " + lineCount + ".");
+            default -> throw new UnknownInstruction("unknown operator \"" + operator + "\" at line " + lineCount + ".");
+        }
+        return opcode;
     }
 
-    private static void checkExcessTokens(String[] tokens, int beginIndex, int endIndex, int line) throws UnknownInstruction {
+    private static int variableInstance(String[] tokens, int index, int lineCount) throws UndefinedLabel {
+        return variableInstance(tokens,index,lineCount,false);
+    }
+
+    private static void checkExcessTokens(String[] tokens, int beginIndex, int endIndex, int lineCount) throws UnknownInstruction {
         for(int i = beginIndex; i < endIndex; i++)
-            if(!tokens[i].isBlank())
-                throw new UnknownInstruction("excess operand " + tokens[i] + " at line " + line + ".");
+            try {
+                if (!tokens[i].isBlank())
+                    throw new UnknownInstruction("excess operand " + tokens[i] + " at line " + lineCount + ".");
+            } catch (ArrayIndexOutOfBoundsException ignore) { return; }
+    }
+
+    private static void checkOverflow(int number, int min, int max, String token, int lineCount) throws OverflowingField {
+        if(number < min || number > max)
+            throw new OverflowingField("overflowing field0 \"" + token + "\" at line " + lineCount + "\n" +
+                    "The required field must be in between " + min + " and " + max + ".");
     }
 
     private static final String tab = "\t";
