@@ -4,15 +4,17 @@ import exceptions.UndefinedLabel;
 import exceptions.UnknownInstruction;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
+import java.nio.file.Files;
 import java.nio.file.Paths;
+
+import java.io.IOException;
+import java.io.FileNotFoundException;
+import java.nio.file.InvalidPathException;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,7 +46,6 @@ public class Assembler {
             UnknownInstruction, UndefinedLabel, OverflowingField {
 
         Charset charset = StandardCharsets.UTF_8;
-
         Path inputPath;
         try {
             inputPath = Paths.get(inputFile.getAbsolutePath()).normalize();
@@ -64,8 +65,8 @@ public class Assembler {
         int lineCount = 0;
         for(String line : lines) {
             lineCount++;
-            String label = line.split(tab)[0].strip();
-            if(label.equals(""))
+            String label = line.split(tab)[0];
+            if(label.isBlank())
                 continue;
 
             if(labels.put(label, lineCount-1) != null)
@@ -128,7 +129,6 @@ public class Assembler {
             if(opcode >= 0b010) {
                 int filter = 65535; // MAGIC!!!!
                 int field2 = variableInstance(tokens, 4, lineCount, (opcode == 0b100));
-                // BEQ use field2 differently.
                 checkOverflow(field2,-32768,32767,tokens[4], lineCount);
                 field2 &= filter;
                 sb.append(basicFields | (field2 << field2Shift)).append('\n');
@@ -167,16 +167,18 @@ public class Assembler {
 
         // Missing operand (Array out of bound)
         try {
-            str = tokens[index].strip();
+            str = tokens[index];
         } catch (ArrayIndexOutOfBoundsException ignore) {
             throw new UndefinedLabel("missing operand at line " + lineCount + ".");
         }
 
         // Missing operand
-        if(str.equals(""))
+        if(str.isBlank())
             throw new UndefinedLabel("missing operand at line " + lineCount + ".");
 
         try {
+            if(index != 0)
+                str = str.strip();
             return Integer.parseInt(str);
         } catch (NumberFormatException ignored) {}
 
