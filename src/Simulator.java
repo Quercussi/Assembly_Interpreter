@@ -2,70 +2,70 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
-
 public class Simulator {
     
     public static void main(String[] args) {
-        String fileName = "input.txt";
-        // File inputFile = new File("src\\" + args[0]);
-        //System.out.println(args[0]);
+        if (args.length == 1) {
+            String fileName = args[0];
+            File inputFile = new File(fileName);
 
-        // Task 1: Check if the file exists
-        boolean fileExists = checkFileExists(fileName);
-        if (fileExists) {
-            System.out.println("File '" + fileName + "' exists.");
+            // Task 1: Check if the file exists
+            boolean fileExists = checkFileExists(inputFile);
+            if (fileExists) {
+                System.out.println("File '" + fileName + "' exists.");
 
-            // Task 2: Check if the file is empty
-            boolean isEmpty = checkFileEmpty(fileName);
-            if (isEmpty) {
-                System.out.println("File '" + fileName + "' is empty.");
-            } else {
-                System.out.println("File '" + fileName + "' is not empty.");
+                // Task 2: Check if the file is empty
+                boolean isEmpty = checkFileEmpty(inputFile);
+                if (isEmpty) {
+                    System.out.println("File '" + fileName + "' is empty.");
+                } else {
+                    System.out.println("File '" + fileName + "' is not empty.");
 
-                // Task 3: Read the contents of the file
-                String fileContents = readFileContents(fileName);
+                    // Task 3: Read the contents of the file
+                    String fileContents = readFileContents(inputFile);
 
-                // Task 4: Handle parsing as integers and exceptions
-                String[] lines = fileContents.split("\n");
-                List<Integer> integers = new ArrayList<>();
+                    // Task 4: Handle parsing as integers and exceptions
+                    String[] lines = fileContents.split("\n");
+                    List<Integer> integers = new ArrayList<>();
 
-                for (String line : lines) {
-                    try {
-                        int intValue = Integer.parseInt(line.trim());
-                        System.out.println(intValue);
-                        integers.add(intValue);
-                    } catch (NumberFormatException e) {
-                        System.out.println("Error: Cannot parse as an integer. Exception: " + e.getMessage());
+                    for (String line : lines) {
+                        try {
+                            int intValue = Integer.parseInt(line.trim());
+                            System.out.println(intValue);
+                            integers.add(intValue);
+                        } catch (NumberFormatException e) {
+                            System.out.println("Error: Cannot parse as an integer. Exception: " + e.getMessage());
+                        }
+                    }
+
+                    // Task 5: Send them to the Stage class
+                    if (containsNumbersOnly(fileContents)) {
+                        Stage stage = new Stage();
+                        stage.processFileContents(fileContents);
                     }
                 }
-
-                // Task 5: send them to the Stage class
-                if (containsNumbersOnly(fileContents)) {
-                    Stage stage = new Stage();
-                    stage.processFileContents(fileContents);
-                }
+            } else {
+                System.out.println("File '" + fileName + "' does not exist.");
             }
         } else {
-            System.out.println("File '" + fileName + "' does not exist.");
+            System.out.println("Usage: java Simulator <file_name>");
+            System.exit(1); // Exit with code 1
         }
     }
 
-
-    public static boolean checkFileExists(String fileName) {
-        File file = new File(fileName);
+    public static boolean checkFileExists(File file) {
         return file.exists();
     }
 
     // Function to check if a file is empty
-    public static boolean checkFileEmpty(String fileName) {
-        File file = new File(fileName);
+    public static boolean checkFileEmpty(File file) {
         return file.length() == 0;
     }
 
     // Function to read the contents of a file
-    public static String readFileContents(String fileName) {
+    public static String readFileContents(File file) {
         StringBuilder content = new StringBuilder();
-        try (BufferedReader br = new BufferedReader(new FileReader(fileName))) {
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String line;
             while ((line = br.readLine()) != null) {
                 content.append(line).append("\n");
@@ -75,7 +75,6 @@ public class Simulator {
         }
         return content.toString();
     }
-    // public static int parseInt(String text) throws NumberFormatException
 
     public static boolean containsNumbersOnly(String text) {
         String[] lines = text.split("\n");
