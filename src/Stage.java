@@ -6,6 +6,7 @@ public class Stage {
     private int pc;            // Program counter
     private int nextPc;        // Next program counter (automatically set to Pc+1)
     private boolean isHalt;    // Halt flag
+    private Decoder decoder;
 
     public Stage() {
         memory = new int[65536];
@@ -13,11 +14,12 @@ public class Stage {
         pc = 0;
         nextPc = 0;
         isHalt = false;
+        decoder = Decoder.getInstance();
     }
 
     public void iterate() {
-        if (!isHalt) {
             // Fetch the instruction from memory at the current PC
+            nextPc = (pc + 1) % memory.length;
             int instruction = memory[pc];
 
             // Decode and execute the instruction (You need to implement this part)
@@ -26,13 +28,11 @@ public class Stage {
 
             // Increment the program counter to the next instruction
             pc = nextPc;
-            nextPc = pc + 1;
-        }
+            decoder.execute(this);
     }
 
-    public void setPc(int newPc) {
-        pc = newPc;
-        nextPc = pc + 1;  // Automatically set nextPc to the next instruction
+    public void setNextPc(int newPc) {
+        nextPc = newPc;
     }
 
     public void setHalt() {
@@ -62,26 +62,14 @@ public class Stage {
         }
         return instructionCount;
     }
-
-    //test decoder = test.getInstance();
-    //decoder.execute(this);
-
-    public static void main(String[] args) {
-        Stage stage = new Stage();
-
-        // Set memory values (for example, load a program into memory)
-        stage.memory[0] = 0x1000;
-        stage.memory[1] = 0x2000;
-        stage.memory[2] = 0x3000;
-
-        // Set the initial program counter
-        stage.setPc(0);
-
-        // Simulate the program until halted
-        stage.simulate();
-
-        // Print the final state of the registers and memory
-        System.out.println("Registers: " + Arrays.toString(stage.register));
-        System.out.println("Memory: " + Arrays.toString(stage.memory));
+    // Method to get the current instruction
+    public int getInstruction() {
+        // Ensure the program counter (pc) is within the memory bounds
+        if (pc >= 0 && pc < memory.length) {
+            return memory[pc];
+        } else {
+            // Handle an out-of-bounds access or return an error code
+            return -1; // You can choose an appropriate error code
+        }
     }
 }
