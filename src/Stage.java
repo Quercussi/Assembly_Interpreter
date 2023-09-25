@@ -6,7 +6,9 @@ public class Stage {
     private int pc;            // Program counter
     private int nextPc;        // Next program counter (automatically set to Pc+1)
     private boolean isHalt;    // Halt flag
+    private int stepCount = 0;
     private Decoder decoder;
+    private int instructionCount = 0;
 
     public Stage() {
         memory = new int[65536];
@@ -25,10 +27,11 @@ public class Stage {
             // Decode and execute the instruction (You need to implement this part)
             // For simplicity, let's assume the instruction is a no-op (do nothing).
             // You should replace this with actual instruction execution logic.
-
+            decoder.execute(this);
             // Increment the program counter to the next instruction
             pc = nextPc;
-            decoder.execute(this);
+            instructionCount++;
+            stepCount++;
     }
 
     public void setNextPc(int newPc) {
@@ -53,15 +56,10 @@ public class Stage {
         return register;
     }
 
-    public int getInstructionCount() {
-        int instructionCount = 0;
-        for (int i = 0; i < memory.length; i++) {
-            if (memory[i] != 0) {
-                instructionCount++;
-            }
-        }
-        return instructionCount;
+    public void setInstructionCount(int count) {
+        instructionCount = count;
     }
+
     // Method to get the current instruction
     public int getInstruction() {
         // Ensure the program counter (pc) is within the memory bounds
