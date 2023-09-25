@@ -32,15 +32,15 @@ public void execute(Stage stage) {
     OInstruction oInstance = OInstruction.getInstance();
 
     int instuction = stage.getInstruction();
-    int Opcode = (instruction >> 22) & 0b111;
+    int opcode = (instruction >> 22) & 0b111;
 
-    int rs, rt, rd,opcode;
+    int rs, rt, rd;
         // R-Type
         switch (opcode) {
             case 0b000:
             case 0b001:
                 // R-Type
-                 opcode = (instruction >> 22) & 0b111;
+                 
                  rs = (instruction >> 19) & 0b111;
                  rt = (instruction >> 16) & 0b111;
                  rd = instruction & 0b111;
@@ -51,15 +51,15 @@ public void execute(Stage stage) {
             case 0b011:
             case 0b100:
                 // I-Type
-                 opcode = (instruction >> 22) & 0b111;
+           
                  rs = (instruction >> 19) & 0b111;
                  rt = (instruction >> 16) & 0b111;
-                short offset = (short) instruction;
+                int offset = instruction & 0xFFFF;
                 iInstance.execute(stage, opcode, rs, rt, offset);
                 break;
          // J-Type
                 case 0b101:
-                 opcode = (instruction >> 22) & 0b111;
+               
                  rs = (instruction >> 19) & 0b111;
                  rd = (instruction >> 16) & 0b111;
                 jInstance.execute(stage, opcode, rs, rd);
@@ -67,7 +67,7 @@ public void execute(Stage stage) {
         // O-type
                 case 0b110:
                 case 0b111:
-                opcode = (instruction >> 22) & 0b111;
+               
                 oInstance.execute(stage, opcode);
                 break;
             }
