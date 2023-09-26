@@ -34,7 +34,7 @@ public class Simulator {
             System.out.println("Usage: java Simulator <file_name>");
             System.exit(1);
         }
-    }
+    } 
 
     public static boolean checkFileExists(File file) {
         return file.exists();
