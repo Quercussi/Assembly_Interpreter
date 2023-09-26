@@ -30,7 +30,6 @@ public class Stage {
             decoder.execute(this);
             // Increment the program counter to the next instruction
             pc = nextPc;
-            instructionCount++;
             stepCount++;
     }
 
