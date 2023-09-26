@@ -1,7 +1,4 @@
-import exceptions.DuplicatedLabel;
-import exceptions.OverflowingField;
-import exceptions.UndefinedLabel;
-import exceptions.UnknownInstruction;
+import exceptions.*;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -20,6 +17,9 @@ import java.util.List;
 import java.util.Map;
 
 public class Assembler {
+    public enum Operator {
+        ADD, NAND, LW, SW, BEQ, JALR, HALT, NOOP, FILL
+    }
     static Map<String, Integer> labels = new HashMap<>();
     static List<String> lines;
 
@@ -34,7 +34,7 @@ public class Assembler {
 
         try {
             assemble(inputFile,outputFile);
-        } catch (FileNotFoundException | DuplicatedLabel | UnknownInstruction | UndefinedLabel | OverflowingField e) {
+        } catch (FileNotFoundException | DuplicatedLabel | UnknownInstruction | UndefinedLabel | OverflowingField | IllegalLabel e) {
             System.out.println("error: " + e.getMessage());
             System.exit(1);
         }
@@ -43,7 +43,7 @@ public class Assembler {
     }
 
     public static void assemble(File inputFile, File outputFile) throws DuplicatedLabel, FileNotFoundException,
-            UnknownInstruction, UndefinedLabel, OverflowingField {
+            UnknownInstruction, UndefinedLabel, OverflowingField, IllegalLabel {
 
         Charset charset = StandardCharsets.UTF_8;
         Path inputPath;
@@ -65,9 +65,17 @@ public class Assembler {
         int lineCount = 0;
         for(String line : lines) {
             lineCount++;
-            String label = line.split(tab)[0];
+            String label = line.split(tab)[0].strip();
             if(label.isBlank())
                 continue;
+
+            if(label.length() > 6)
+                throw new IllegalLabel("illegal label \"" + label + "\" at line " + lineCount + ".\n" +
+                        "Labels must be 6 characters or less.");
+
+            if(!Character.isLetter(label.charAt(0)))
+                throw new IllegalLabel("illegal label \"" + label + "\" at line " + lineCount + ".\n" +
+                        "The first character in a label must be a letter.");
 
             if(labels.put(label, lineCount-1) != null)
                 throw new DuplicatedLabel("duplicated label \"" + label + "\" at line " + lineCount + ".");
@@ -89,19 +97,19 @@ public class Assembler {
             int field0Shift = 19;
             int field1Shift = 16;
             int field2Shift = 0;
-            short opcode = getOpcode(tokens[1], lineCount);
+            Operator operator = getOperator(tokens[1], lineCount);
 
             // O-type instructions
-            if(opcode >= 0b110) {
+            if(operator == Operator.HALT || operator == Operator.NOOP) {
                 checkExcessTokens(tokens, 2, tokensLength, lineCount);
-                sb.append(opcode << opcodeShift).append('\n');
+                sb.append(operator.ordinal() << opcodeShift).append('\n');
                 continue;
             }
 
             int i_field0 = variableInstance(tokens, 2, lineCount);
 
             // .fill instruction
-            if(opcode == -1) {
+            if(operator == Operator.FILL) {
                 checkExcessTokens(tokens, 3, tokensLength, lineCount);
                 // Since i_field0 is already 32 bits, there is no need to check for overflow.
                 sb.append(i_field0).append('\n');
@@ -116,19 +124,19 @@ public class Assembler {
             short field0 = (short) i_field0;
             short field1 = (short) i_field1;
 
-            int basicFields = (opcode<<opcodeShift) | (field0<<field0Shift) | (field1<<field1Shift);
+            int basicFields = (operator.ordinal()<<opcodeShift) | (field0<<field0Shift) | (field1<<field1Shift);
 
             // J-type instruction
-            if(opcode == 0b101) {
+            if(operator == Operator.JALR) {
                 checkExcessTokens(tokens, 4, tokensLength, lineCount);
                 sb.append(basicFields).append('\n');
                 continue;
             }
 
             // I-type instructions
-            if(opcode >= 0b010) {
+            if(operator == Operator.LW || operator == Operator.SW || operator == Operator.BEQ) {
                 int filter = 65535; // MAGIC!!!!
-                int field2 = variableInstance(tokens, 4, lineCount, (opcode == 0b100));
+                int field2 = variableInstance(tokens, 4, lineCount, (operator == Operator.BEQ));
                 checkOverflow(field2,-32768,32767,tokens[4], lineCount);
                 field2 &= filter;
                 sb.append(basicFields | (field2 << field2Shift)).append('\n');
@@ -136,7 +144,7 @@ public class Assembler {
             }
 
             // R-type instructions
-            if(opcode >= 0b000) {
+            if(operator == Operator.ADD || operator == Operator.NAND) {
                 int i_field2 = variableInstance(tokens, 4, lineCount);
                 checkOverflow(i_field2, 0, 7, tokens[4], lineCount);
                 short field2 = (short) i_field2;
@@ -149,7 +157,7 @@ public class Assembler {
         }
 
         // Remove the last \n
-        if(sb.length() > 0)
+        if(!sb.isEmpty() && sb.charAt(sb.length()-1) == '\n')
             sb.deleteCharAt(sb.length()-1);
 
         // Writing output file
@@ -162,24 +170,22 @@ public class Assembler {
         }
     }
 
-    private static int variableInstance(String[] tokens, int index, int lineCount, boolean isLabelRelative) throws UndefinedLabel {
+    private static int variableInstance(String[] tokens, int index, int lineCount, boolean isLabelRelative) throws UndefinedLabel, UnknownInstruction {
         String str;
 
         // Missing operand (Array out of bound)
         try {
             str = tokens[index];
         } catch (ArrayIndexOutOfBoundsException ignore) {
-            throw new UndefinedLabel("missing operand at line " + lineCount + ".");
+            throw new UnknownInstruction("missing operand at line " + lineCount + ".");
         }
 
         // Missing operand
         if(str.isBlank())
-            throw new UndefinedLabel("missing operand at line " + lineCount + ".");
+            throw new UnknownInstruction("missing operand at line " + lineCount + ".");
 
         try {
-            if(index != 0)
-                str = str.strip();
-            return Integer.parseInt(str);
+            return Integer.parseInt(str.strip());
         } catch (NumberFormatException ignored) {}
 
         Integer parsedLabel = labels.get(str);
@@ -190,25 +196,23 @@ public class Assembler {
         throw new UndefinedLabel("undefined label \"" + str + "\" at line " + lineCount + ".");
     }
 
-    private static short getOpcode(String operator, int lineCount) throws UnknownInstruction {
-        short opcode;
-        switch (operator.strip().toUpperCase()) {
-            case "ADD" -> opcode = 0b000;
-            case "NAND" -> opcode = 0b001;
-            case "LW" -> opcode = 0b010;
-            case "SW" -> opcode = 0b011;
-            case "BEQ" -> opcode = 0b100;
-            case "JALR" -> opcode = 0b101;
-            case "HALT" -> opcode = 0b110;
-            case "NOOP" -> opcode = 0b111;
-            case ".FILL" -> opcode = -1;
-            case "" -> throw new UnknownInstruction("no operator found at line " + lineCount + ".");
-            default -> throw new UnknownInstruction("unknown operator \"" + operator + "\" at line " + lineCount + ".");
+    private static Operator getOperator(String str, int lineCount) throws UnknownInstruction {
+        String strOperator = str.strip().toUpperCase();
+
+        if(strOperator.isBlank())
+            throw new UnknownInstruction("no operator found at line " + lineCount + ".");
+
+        if(strOperator.equals(".FILL"))
+            return Operator.FILL;
+
+        try {
+            return Operator.valueOf(strOperator);
+        } catch (IllegalArgumentException ignore) {
+            throw new UnknownInstruction("unknown operator \"" + strOperator + "\" at line " + lineCount + ".");
         }
-        return opcode;
     }
 
-    private static int variableInstance(String[] tokens, int index, int lineCount) throws UndefinedLabel {
+    private static int variableInstance(String[] tokens, int index, int lineCount) throws UndefinedLabel, UnknownInstruction {
         return variableInstance(tokens,index,lineCount,false);
     }
 
