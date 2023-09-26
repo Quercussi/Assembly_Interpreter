@@ -37,6 +37,6 @@ public class Simulator {
             e.printStackTrace();
         }
 
-        //stage.simulate();
+        stage.simulate();
     }
 }
