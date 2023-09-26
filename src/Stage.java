@@ -44,8 +44,13 @@ public class Stage {
 
     public void simulate() {
         while (!isHalt) {
+            printState();
             iterate();
         }
+        System.out.println("machine halted\ntotal of " + instructionCount + " instructions executed");
+        System.out.println("final state of machine:"); 
+        System.out.println("") ;
+        printState();
     }
 
     public int[] getMemory() {
@@ -54,6 +59,25 @@ public class Stage {
 
     public int[] getRegister() {
         return register;
+    }
+
+    public int getPc(){
+        return pc ;
+    }
+
+    public void printState(){
+        System.out.println("@@@\nstate:");
+        System.out.println("\tpc " + pc);
+        System.out.println("\tmemory:");
+        for(int i = 0; i< memory.length ;i++){
+            System.out.println("\t\tmem[" + i + "] " + memory[i]);
+        }
+        System.out.println("\tregisters:");
+        for(int i = 0; i< register.length ;i++){
+            System.out.println("\t\treg[" + i + "] " + register[i]);
+        }
+        System.out.println("end state");  
+        System.out.println("");
     }
 
     public void setInstructionCount(int count) {
