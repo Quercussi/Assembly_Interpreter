@@ -2,7 +2,7 @@ public class RInstruction {
    
     private static RInstruction instance ;
 
-    private RInstruction(){} ;
+    private RInstruction(){}
 
     public static RInstruction getInstance(){
         if(instance == null){
@@ -20,11 +20,10 @@ public class RInstruction {
             return ;
         }
 
-        if(opcode == 0){        // add instruction               
+        if(opcode == 0){        // add instruction
             reg[rd] = reg[rs] + reg[rt] ;
         }else if(opcode == 1){  // nand instruction
             reg[rd] = ~(reg[rs] & reg[rt]) ;
         }
     }
-
 }

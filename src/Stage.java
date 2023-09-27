@@ -1,13 +1,11 @@
-import java.util.Arrays;
-
 public class Stage {
-    private int[] memory;      // Memory array
-    private int[] register;    // Register array
+    private final int[] memory;      // Memory array
+    private final int[] register;    // Register array
     private int pc;            // Program counter
     private int nextPc;        // Next program counter (automatically set to Pc+1)
     private boolean isHalt;    // Halt flag
     private int stepCount = 0;
-    private Decoder decoder;
+    private final Decoder decoder;
     private int instructionCount = 0;
 
     public Stage() {
@@ -22,7 +20,6 @@ public class Stage {
     public void iterate() {
             // Fetch the instruction from memory at the current PC
             nextPc = (pc + 1) % memory.length;
-            int instruction = memory[pc];
 
             // Decode and execute the instruction (You need to implement this part)
             // For simplicity, let's assume the instruction is a no-op (do nothing).
@@ -46,9 +43,8 @@ public class Stage {
             printState();
             iterate();
         }
-        System.out.println("machine halted\ntotal of " + instructionCount + " instructions executed");
-        System.out.println("final state of machine:"); 
-        System.out.println("") ;
+        System.out.println("machine halted\ntotal of " + stepCount + " instructions executed");
+        System.out.println("final state of machine:\n");
         printState();
     }
 
@@ -75,8 +71,7 @@ public class Stage {
         for(int i = 0; i< register.length ;i++){
             System.out.println("\t\treg[" + i + "] " + register[i]);
         }
-        System.out.println("end state");  
-        System.out.println("");
+        System.out.println("end state\n");
     }
 
     public void setInstructionCount(int count) {

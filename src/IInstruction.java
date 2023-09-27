@@ -2,7 +2,7 @@ public class IInstruction {
     
     private static IInstruction instance ;
 
-    private IInstruction(){} ;
+    private IInstruction(){}
 
     public static IInstruction getInstance(){
         if(instance == null){
@@ -32,8 +32,6 @@ public class IInstruction {
                 stage.setNextPc(newPc) ;
             }
         }
-
-
     }
 
     public int sign_extend(int num){
@@ -44,5 +42,4 @@ public class IInstruction {
 
         return num;
     }
-    
 }

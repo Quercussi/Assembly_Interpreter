@@ -1,0 +1,47 @@
+x0	beq	0	0	main
+a1	noop				; function argument 1
+a2	noop				; function argument 2
+a0	noop				; return value
+t0	noop				; temp 0
+sp	noop				; stack pointer
+t1	noop				; temp 1
+ra	noop				; return address
+pos1	.fill	1
+pos4	.fill	4			; test
+neg4	.fill	-4
+cnrAdr	.fill	cnr
+n	.fill	7
+r	.fill	3
+main	lw	0	sp	spAddr	; sp = stack
+	lw	0	a1	n	; set a1
+	lw	0	a2	r	; set a2
+	lw	0	t0	cnrAdr
+	jalr	t0	ra		; use Cnr function
+	halt
+cnr	beq	0	a2	basCnr
+	beq	a1	a2	basCnr
+	lw	0	t0	cnrAdr	; t0 ALWAYS stays cnrAdr
+	lw	0	t1	pos4
+	add	t1	sp	sp	; sp += 4
+	sw	sp	ra	-4	; (sp-4)* = ra
+	sw	sp	a2	-3	; (sp-3)* = r
+	sw	sp	a1	-2	; (sp-2)* = n
+	nand	0	0	t1
+	add	t1	a1	a1	; n -= 1
+	jalr	t0	ra		; use Cnr
+	sw	sp	a0	-1	; (sp-1)* = cnr(n-1,r)
+	nand	0	0	t1
+	add	t1	a2	a2	; r -= 1
+	jalr	t0	ra		; recursively use Cnr
+	lw	sp	a1	-1	; cnr(n-1,r) = (sp-1)*
+	add	a1	a0	a0	; return cnr(n-1,r) + cnr(n-1,r-1)
+	lw	sp	a1	-2	; n = (sp+2)*
+	lw	sp	a2	-3	; r = (sp+3)*
+	lw	sp	ra	-4	; ra = (sp+4)*
+	lw	0	t1	neg4
+	add	t1	sp	sp	; sp -= 4
+	jalr	ra	0		; return
+basCnr	lw	0	a0	pos1	; set output to 1
+	jalr	ra	0		; return
+stack	noop
+spAddr	.fill	stack

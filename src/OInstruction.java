@@ -2,7 +2,7 @@ public class OInstruction {
     
     private static OInstruction instance ;
 
-    private OInstruction(){} ;
+    private OInstruction(){}
 
     public static OInstruction getInstance(){
         if(instance == null){
@@ -19,5 +19,4 @@ public class OInstruction {
 
         }
     }
-    
 }

@@ -2,7 +2,7 @@ public class JInstruction {
     
     private static JInstruction instance ;
 
-    private JInstruction(){} ;
+    private JInstruction(){}
 
     public static JInstruction getInstance(){
         if(instance == null){
@@ -24,6 +24,4 @@ public class JInstruction {
         }
         
     }
-
-    
 }
