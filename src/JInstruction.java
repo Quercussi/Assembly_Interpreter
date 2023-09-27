@@ -21,10 +21,6 @@ public class JInstruction {
                 reg[rd] = stage.getPc() + 1 ;
             }
             stage.setNextPc(reg[rs]) ;
-            if(rs == rd){
-                int newPc = stage.getPc() + 1 ;
-                stage.setNextPc(newPc) ;
-            }
         }
         
     }
