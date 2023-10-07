@@ -4,6 +4,10 @@ public class IInstruction {
 
     private IInstruction(){}
 
+    /**
+     * Return the singleton instance of the class
+     * @return is the instance of the class.
+     */
     public static IInstruction getInstance(){
         if(instance == null){
             instance = new IInstruction();
@@ -12,6 +16,14 @@ public class IInstruction {
         return instance ;
     }
 
+    /**
+     * Execute an I-type instruction for the input state.
+     * @param stage is the Stage object that is to be computed.
+     * @param opcode is operation code of the instruction.
+     * @param rs is the index of the primary source register.
+     * @param rt is the index of the secondary source register.
+     * @param offset is the offset of the instruction.
+     */
     public void executeI(Stage stage,int opcode,int rs,int rt,int offset){
         
         int []reg = stage.getRegister() ;
@@ -24,8 +36,10 @@ public class IInstruction {
                 return ;
             }      
             reg[rt] = mem[mem_address] ;
+
         }else if(opcode == 3){   // sw instruction
             mem[mem_address] = reg[rt] ;
+
         }else if(opcode == 4){   // beq instruction
             if(reg[rs] == reg[rt]){
                 int newPc = stage.getPc() + 1 + offset_field ;
@@ -34,8 +48,12 @@ public class IInstruction {
         }
     }
 
-    public int sign_extend(int num){
-       
+    /**
+     * Convert a 16-bit integer into a 32-bit integer.
+     * @param num is the converting integer.
+     * @return the converted integer.
+     */
+    private int sign_extend(int num){
         if ((num & (1<<15)) != 0) {
             num -= (1<<16);
         }
