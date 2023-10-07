@@ -1,0 +1,36 @@
+x0	beq	0	0	main	; register 0
+a1	noop				; function argument 1
+a2	noop				; function argument 2
+a0	noop				; return value
+t0	noop				; temp 0
+sp	noop				; stack pointer
+t1	noop				; temp 1
+ra	noop				; return address
+pos1	.fill	1
+neg1	.fill	-1
+c65536	.fill	65536
+mulAdr	.fill	mul
+mcand	.fill	32766
+mplier	.fill	10383
+main	lw	0	sp	neg1
+	lw	0	a1	mcand	; assign a1
+	lw	0	a2	mplier	; assign a2
+	lw	0	t0	mulAdr	
+	jalr	t0	ra		; use mul function
+	halt
+mul	sw	0	sp	sp	; (5)* = sp
+	sw	0	ra	ra	; (7)* = ra
+	add	x0	x0	a0	; sum = 0
+	lw	0	t1	neg1	; set t1 to -1
+	lw	0	sp	c65536	; set sp to 2^16
+	lw	0	t0	pos1	; for t0=1,2,4,...,2^{15}
+muladd	nand	a1	t0	ra	
+	beq	t1	ra	skAdd	; if ra=-1, jump to skAdd+1
+	add	a2	a0	a0	; sum += a2
+skAdd	add	t0	t0	t0	; t0<<=1
+	add	a2	a2	a2	; a2<<=1
+	beq	sp	t0	mulret	; if t0=2^16, jump to mulret+1
+	beq	0	0	muladd	; else jump to muladd+1
+mulret	lw	0	ra	ra	; (7)* = ra
+	lw	0	sp	sp	; (5)* = sp
+	jalr	ra	0		; jump back to return address

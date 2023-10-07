@@ -1,0 +1,299 @@
+x0	beq	0	0	main
+a1	noop				; function argument 1
+a2	noop				; function argument 2
+a0	noop				; return value
+t0	noop				; temp 0
+sp	noop				; stack pointer
+t1	noop				; temp 1
+ra	noop				; return address
+m	.fill	-13			; input base
+e	.fill	5			; input power
+main	lw	0	sp	spAddr	; sp = stack
+	lw	0	a1	m	; set a1
+	lw	0	a2	e	; set a2
+	lw	0	t0	powerA	; getting function address
+	jalr	t0	ra		; call the function
+	halt
+powerA	.fill	power
+power	beq	0	a2	power0	; if e == 0 -> return 1
+	lw	0	t1	c4	; store 4 at $6
+	add	sp	t1	sp	; increment stack by 4
+	sw	sp	a1	-4	; store $1 (input arg 1)
+	sw	sp	a2	-3	; store $2 (input arg 2)
+	sw	sp	t0	-2	; store $4 (local variable)
+	sw	sp	ra	-1	; store $7 (return address)
+	noop				____START FUNCITON____
+	add	0	sp	t0	; set t0 to be varible address
+	lw	0	t1	c4	; set t1 to 4
+	add	t1	sp	sp	; allocate 4 address for variables
+	sw	t0	t1	0	; set maxexp to 4 at t0
+	sw	t0	sp	2	; allocate productTree in advance at t0 + 2
+	lw	0	ra	c1	; set ra to 1
+	add	ra	t1	t1	; set t1 = maxexp + 1
+	add	t1	sp	sp	; increment sp by maxexp + 1 for productTree
+	noop				____END OF VARIABLE DECLARATION____
+	sw	t0	sp	3	; allocate power_of_2 at t0 + 3
+	lw	t0	a1	3	; set arg1 to power_of_2
+	lw	t0	a2	0	; set arg2 to maxexp
+	add	t1	sp	sp	; increment sp by maxexp + 1 for power_of_2
+	lw	0	t1	pow2fA	; getting function address
+	jalr	t1	ra		; call the function
+	noop				____END OF PROCEDURE 1____
+	add	0	sp	ra	; temporarily set ra to current sp
+	lw	0	t1	c3	; set t1 to 3
+	add	t1	sp	sp	; increment sp by 3 for input args
+	sw	sp	a1	-3	; set (sp-3)* to be power_of_2
+	sw	sp	a2	-2	; set (sp-2)* to be maxexp
+	lw	0	t1	c2	; set t1 to 2
+	lw	t0	t1	2	; set t1 to productTree
+	sw	sp	t1	-1	; set (sp-1)* to be productTree
+	add	0	ra	a1	; set a1 to be the address of input args
+	lw	t0	a2	-3	; set a2 to e
+	lw	0	t1	facfA	; calling function address
+	jalr	t1	ra		; call the function
+	sw	t0	a0	1	; set productTreeSize at t0 + 1
+	lw	0	t1	n3	; set t1 to -3
+	add	t1	sp	sp	; deallocate the input args
+	noop				____END OF PROCEDURE 2_____
+	lw	t0	a2	2	; set a2 to productTree
+	lw	a2	a2	0	; set a2 to maxfactor
+	lw	t0	a1	3	; set a1 to be power_of_m (We'll reuse the space at power_of_2)
+	lw	t0	t1	-4	; set t1 to m
+	sw	a1	t1	0	; store m at the first index of power_of_m
+	lw	0	t1	powmfA	; getting funcition address
+	jalr	t1	ra		; call the function
+	noop				____END OF PROCEDURE 3_____
+	add	0	sp	ra	; temporarily set ra to current sp	
+	lw	0	t1	c2	; set t1 to 2
+	add	t1	sp	sp	; increment sp by 2 for input args
+	lw	t0	t1	2	; set t1 to productTree
+	sw	sp	t1	-2	; set (sp-2)* to be productTree
+	lw	t0	t1	3	; set t1 to power_of_m
+	sw	sp	t1	-1	; set (sp-1)* to be power_of_m
+	add	0	ra	a1	; set a1 to be the address of input args
+	lw	t0	a2	1	; set a2 to be productTreeSize
+	lw	0	t1	prodA	; getting the fuction address
+	jalr	t1	ra		; call the function address
+	lw	0	t1	n2	; set t1 to -2
+	add	t1	sp	sp	; deallocate the input args
+	noop				____END OF PROCEDURE 4____
+	lw	t0	ra	0	; set ra to be maxexp		[deallocate power_of_m]
+	nand	ra	ra	t1	; set t1 to be -(maxexp + 1)
+	add	t1	t1	t1	; set t1 to be -2(maxexp + 1)	[deallocate productTree]
+	lw	0	ra	n4	; set t1 to -4			[deallocate variables]
+	add	ra	t1	t1	; set t1 to be -2(maxexp + 1) - 4
+	add	t1	sp	sp	; deallocate stack
+	noop				____END OF DEALLOCATION____
+	lw	sp	ra	-1	; store ra (return address)
+	lw	sp	t0	-2	; store t0 (local variable)
+	lw	sp	a2	-3	; store a2 (input arg 2)
+	lw	sp	a1	-4	; store a1 (input arg 1)
+	lw	0	t1	n4	; store -4 at t1
+	add	sp	t1	sp	; decrement stack by 4
+	jalr	ra	0		; return
+power0	lw	0	a0	c1	; if e == 0 -> return 1
+	jalr	ra	0
+	noop				##############################
+	noop				##############################
+facfA	.fill	facf
+facf  	lw	0	t1	c5
+      	add  	sp	t1 	sp    	increment stack by 5
+      	sw  	sp  	0  	-5    
+      	sw  	sp  	1  	-4    	store $1 (input arg 1)
+      	sw  	sp  	2  	-3    	store $2 (input arg 2)
+      	sw  	sp  	4  	-2    	store $4 (local variable)
+      	sw  	sp  	7  	-1    	store $7 (return address)
+      	lw  	a1  	t0  	1     	i = maxexp
+faclp  	lw  	sp  	a1  	-4	; set a1 to input array
+      	beq 	a2	0	facext	; if e == 0, return
+      	lw  	0   	t1   	n1   	; set t1 to -1   
+      	lw  	a1  	a1  	0	; set a1 to power_of_2
+      	add 	t0  	a1  	a1	; set a1 to power_of_2 + i
+      	lw  	a1  	a1  	0     	; a1 = power_of_2[i]
+	beq	a1	a2	3	; if factor == e, jump
+      	lw  	0  	t1 	sltA
+      	jalr 	t1 	ra  
+      	beq  	0  	a0  	facdnc	; if factor >= e, continue
+      	lw   	0   	t1  	c1    	t1 = 1
+      	nand 	a1 	a1  	a1     	set a1 to complement
+      	add  	t1  	a1 	a1     	a1 = a1 + 1
+      	add  	a1 	a2  	a2     	e  = e - factor
+      	lw   	sp  	a1  	-4
+      	lw   	a1 	a1  	2   	address productTree  
+      	lw   	sp  	ra  	-5 	get j
+      	add  	ra 	a1 	a1  	a1=productTree+j
+      	sw  	a1  	t0 	0      	productTree[j] = t0 = i
+      	add   	t1 	ra 	ra     	j += 1 
+      	sw   	sp 	ra  	-5 
+facdnc 	lw  	0   	t1   	n1    	t1 = -1   
+      	add  	t1  	t0  	t0    	i -= 1
+      	beq  	0   	0  	faclp  	go back to the beginning of loop 
+facext 	lw    	sp    	a0   	-5    
+       	lw    	sp    	7    	-1  	store $7 (return address)
+       	lw    	sp    	4    	-2  	store $4 (local variable)
+       	lw    	sp    	2    	-3   	store $2 (input arg 2)
+       	lw    	sp    	1    	-4  	store $1 (input arg 1)
+       	lw    	0     	t1    	n5  	store -5 at $6
+       	add   	t1    	sp    	sp 	decrement stack by 5
+       	jalr  	ra    	0		return
+	noop				##############################
+	noop				##############################
+prodA	.fill	prod
+prod  	lw  	0  	t1  	c4  	; store 4 at $6
+  	add  	sp  	t1  	sp  	; increment stack by 4
+  	sw  	sp  	a1  	-4  	; store $1 (input arg 1)
+  	sw  	sp  	a2  	-3  	; store $2 (input arg 2)
+  	sw  	sp  	t0  	-2  	; store $4 (local variable)
+  	sw  	sp  	ra  	-1  	; store $7 (return address)
+	lw 	0 	t0 	c1	; set t0 to 1 (i)
+	lw 	a1 	t1 	0	; set t1 to power_of_m
+	lw 	t1 	t1 	0	; set t1 to power_of_m[0]
+	lw 	a1 	ra 	1	; set ra to productTree
+	add 	ra 	t1 	ra	; set ra to productTree + power_of_m[0]
+	lw 	ra 	a0 	0	; set a0 to productTree[power_of_m[0]]
+prodlp 	beq 	t0 	a2 	prodxt	; Loop until i = productTreeSize
+	lw 	a1 	t1 	0	; set t1 to power_of_m
+	add 	t1 	t0 	t1	; set t1 to power_of_m + i
+	lw 	t1 	t1 	0	; set t1 to power_of_m[i]
+	lw 	a1 	ra 	1	; set ra to productTree
+	add 	ra 	t1 	ra	; set ra to productTree + power_of_m[i]
+	lw 	ra 	a2 	0	; set a2 to be peoductTree[power_of_m[i]]
+	add 	a0 	0 	a1	; set a1 to current product
+	lw 	0 	t1 	mulA	; getting multipler function address
+	jalr 	t1 	ra  		; call the function
+	lw 	0 	t1 	c1	; set t1 to 1
+	add 	t0 	t1 	t0	; i = i + 1
+	lw	sp	a1	-4	; load a1 (input arg 1)
+	lw	sp	a2	-3	; load a2 (input arg 2)
+	beq 	0 	0 	prodlp	; loop
+prodxt 	lw  	sp  	ra  	-1  	; store $7 (return address)
+  	lw  	sp  	t0  	-2  	; store $4 (local variable)
+	lw  	sp  	a2  	-3  	; store $2 (input arg 2)
+  	lw  	sp  	a1  	-4  	; store $1 (input arg 1)
+  	lw  	0  	t1  	n4  	; store -4 at $6
+  	add  	sp  	t1  	sp  	; decrement stack by 4
+  	jalr  	ra  	0    		; return
+	noop				##############################
+	noop				##############################
+pow2fA	.fill	pow2f
+pow2f	lw	0	t1	c4	; store 4 at $6
+	add	sp	t1	sp	; increment stack by 4
+	sw	sp	a1	-4	; store $1 (input arg 1)
+	sw	sp	a2	-3	; store $2 (input arg 2)
+	sw	sp	t0	-2	; store $4 (local variable)
+	sw	sp	ra	-1	; store $7 (return address)	
+	lw	0	t0	c1 	; set t0 = 1
+	sw	a1	t0	0	; power_of_2[0] = 1
+	add	0	0	t0	; i = 0
+pow2lp	beq 	t0  	a2	pow2xt	; if i == maxexp, exit the loop
+	add	a1	t0	ra	; power_of_2[i]
+	lw	ra	t1	0	; t1 = power_of_2[i]
+	add	t1	t1	t1	; curr + curr
+	sw	ra	t1	1	; power_of_2[i+1] = curr + curr
+	lw  	0   	t1   	c1	; t1 = 1
+	add  	t1  	t0  	t0    	; i += 1
+	beq  	0   	0  	pow2lp	; go tp loop
+pow2xt	lw	sp	ra	-1	; store $7 (return address)
+	lw	sp	t0	-2	; store $4 (local variable)
+	lw	sp	a2	-3	; store $2 (input arg 2)
+	lw	sp	a1	-4	; store $1 (input arg 1)
+	lw	0	t1	n4	; store -4 at $6
+	add	sp	t1	sp	; decrement stack by 4
+	jalr	ra	0		; return
+	noop				##############################
+	noop				##############################
+powmfA	.fill	powmf
+powmf  	lw  	0  	t1  	c4  	; store 4 at $6
+  	add  	sp  	t1  	sp  	; increment stack by 4
+  	sw  	sp  	a1  	-4  	; store $1 (input arg 1)
+  	sw  	sp  	a2  	-3  	; store $2 (input arg 2)
+  	sw  	sp  	t0  	-2  	; store $4 (local variable)
+  	sw  	sp  	ra  	-1  	; store $7 (return address)
+	add	0	0	t0	; i = 0
+powmlp 	beq 	t0 	a2 	powmxt	; if i == maxfactor , exit
+	add	a1	t0	ra	; ra = power_of_m + i
+	lw	ra	t1	0	; t1 = power_of_m[i]
+	add	t1	0	a1	; set a1 to curr	
+	add	t1	0	a2	; set a2 to curr
+	lw 	0 	t1 	mulA	; getting multipler function address
+	jalr 	t1 	ra  		; call the function
+	lw  	sp  	a1  	-4  	; load a1 (input arg 1)
+  	lw  	sp  	a2  	-3  	; load a2 (input arg 2)
+	add	a1	t0	ra	; ra = power_of_m + i
+	sw	ra	a0	1	; power_of_m[i+1] = curr * curr
+	lw	0	t1	c1	; t1 = 1
+	add 	t0	t1	t0	; t0 + 1
+	beq	0	0	powmlp	; back to loop
+powmxt 	lw  	sp  	ra  	-1  	; store $7 (return address)
+  	lw  	sp  	t0  	-2  	; store $4 (local variable)
+	lw  	sp  	a2  	-3  	; store $2 (input arg 2)
+  	lw  	sp  	a1  	-4  	; store $1 (input arg 1)
+  	lw  	0  	t1  	n4  	; store -4 at $6
+  	add  	sp  	t1  	sp  	; decrement stack by 4
+  	jalr  	ra  	0    		; return
+	noop				##############################
+	noop				##############################
+mulA	.fill	mul
+mul	lw	0	t1	c4	; store 4 at $6
+	add	sp	t1	sp	; increment stack by 4
+	sw	sp	a1	-4	; store $1 (input arg 1)
+	sw	sp	a2	-3	; store $2 (input arg 2)
+	sw	sp	t0	-2	; store $4 (local variable)
+	sw	sp	ra	-1	; store $7 (return address)
+	add	x0	x0	a0	; sum = 0
+	lw	0	t1	n1	; set t1 to -1
+	lw	0	t0	c1	; for t0=1,2,4,...,2^{31}
+muladd	nand	a1	t0	ra	; check if current bit is 1
+	beq	t1	ra	1	; if ra=-1, skip addition
+	add	a2	a0	a0	; sum += a2
+	add	t0	t0	t0	; t0<<=1
+	add	a2	a2	a2	; a2<<=1
+	beq	0	t0	mulret	; if t0=0, jump to mulret
+	beq	0	0	muladd	; else jump to muladd
+mulret	lw	sp	ra	-1	; store $7 (return address)
+	lw	sp	t0	-2	; store $4 (local variable)
+	lw	sp	a2	-3	; store $2 (input arg 2)
+	lw	sp	a1	-4	; store $1 (input arg 1)
+	lw	0	t1	n4	; store -4 at $6
+	add	sp	t1	sp	; decrement stack by 4
+	jalr	ra	0		; return
+	noop				##############################
+	noop				##############################
+sltA	.fill	slt
+slt	lw	0	t1	c4	; store 4 at $6
+    	add    	t1	sp    	sp	; increment stack by 4
+    	sw    	sp    	a1    	-4	; store $1 (input arg 1)
+    	sw    	sp    	a2    	-3    	; store $2 (input arg 2)
+    	sw    	sp    	t0    	-2    	; store $4 (local variable)
+    	sw    	sp    	ra    	-1    	; store $7 (return address)
+	noop				____START FUNCTION____
+	lw	0	t1	c1	; set t1 to 1
+ 	nand	a2	a2	a2	; set a2 to its complement
+	add	t1	a2	a2	; get -a2
+    	add    	a1    	a2    	a0    	; substract the two input args (a0 = a1 - a2)
+    	lw    	0    	t1    	sign   	; set t1 to be the filter
+    	nand   	t1    	a0    	a0    	; find if the last bit of a0 is 0.
+	nand	a0	a0	a0	
+    	beq    	0    	a0    	1    	; if a1 - a2 >= 0, return promtly
+    	lw	0	a0	c1	; set a0 to 1
+	noop				____END FUNCTION____
+    	lw    	sp    	ra    	-1    	; store $7 (return address)
+    	lw    	sp    	t0    	-2    	; store $4 (local variable)
+    	lw    	sp    	a2    	-3    	; store $2 (input arg 2)
+    	lw    	sp    	a1    	-4    	; store $1 (input arg 1)
+    	lw    	0    	t1    	n4    	; store -4 at $6
+    	add    	t1    	sp    	sp    	; decrement stack by 4
+    	jalr  	ra    	0		; return
+c1	.fill	1
+c2	.fill	2
+c3	.fill	3
+c4	.fill	4
+c5	.fill	5
+n1	.fill	-1
+n2	.fill	-2
+n3	.fill	-3
+n4	.fill	-4
+n5	.fill	-5
+sign   	.fill	-2147483648			; 1<<31, the last bit
+spAddr	.fill	stack
+stack	noop

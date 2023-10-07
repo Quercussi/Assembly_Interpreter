@@ -1,96 +1,123 @@
-import java.util.Arrays;
-
 public class Stage {
-    private int[] memory;      // Memory array
-    private int[] register;    // Register array
+    private final int[] memory;      // Memory array
+    private final int[] register;    // Register array
     private int pc;            // Program counter
     private int nextPc;        // Next program counter (automatically set to Pc+1)
     private boolean isHalt;    // Halt flag
-    private int stepCount = 0;
-    private Decoder decoder;
-    private int instructionCount = 0;
+    private int stepCount;
+    private final Decoder decoder;
+    private final StringBuilder sb = new StringBuilder();
 
+    /**
+     * Constructor for the stage class.
+     */
     public Stage() {
         memory = new int[65536];
         register = new int[8];
         pc = 0;
         nextPc = 0;
         isHalt = false;
+        stepCount = 0;
         decoder = Decoder.getInstance();
     }
 
+    /**
+     * Call the decoder to decode the stage,
+     * and setting the program counter to the next one.
+     */
     public void iterate() {
-            // Fetch the instruction from memory at the current PC
             nextPc = (pc + 1) % memory.length;
-            int instruction = memory[pc];
-
-            // Decode and execute the instruction (You need to implement this part)
-            // For simplicity, let's assume the instruction is a no-op (do nothing).
-            // You should replace this with actual instruction execution logic.
             decoder.execute(this);
-            // Increment the program counter to the next instruction
+            register[0] = 0;
             pc = nextPc;
             stepCount++;
     }
 
-    public void setNextPc(int newPc) {
-        nextPc = newPc;
-    }
-
-    public void setHalt() {
-        isHalt = true;
-    }
-
+    /**
+     * Execute the stage until it halts.
+     */
     public void simulate() {
         while (!isHalt) {
             printState();
             iterate();
         }
-        System.out.println("machine halted\ntotal of " + instructionCount + " instructions executed");
-        System.out.println("final state of machine:"); 
-        System.out.println("") ;
+
+        // print the last state.
+        System.out.println("machine halted\ntotal of " + stepCount + " instructions executed");
+        System.out.println("final state of machine:\n");
         printState();
     }
 
-    public int[] getMemory() {
-        return memory;
-    }
-
-    public int[] getRegister() {
-        return register;
-    }
-
-    public int getPc(){
-        return pc ;
-    }
-
-    public void printState(){
-        System.out.println("@@@\nstate:");
-        System.out.println("\tpc " + pc);
-        System.out.println("\tmemory:");
-        for(int i = 0; i< memory.length ;i++){
-            System.out.println("\t\tmem[" + i + "] " + memory[i]);
-        }
-        System.out.println("\tregisters:");
-        for(int i = 0; i< register.length ;i++){
-            System.out.println("\t\treg[" + i + "] " + register[i]);
-        }
-        System.out.println("end state");  
-        System.out.println("");
-    }
-
-    public void setInstructionCount(int count) {
-        instructionCount = count;
-    }
-
-    // Method to get the current instruction
+    /**
+     * Get the current instruction code
+     * @return the current instruction code.
+     */
     public int getInstruction() {
         // Ensure the program counter (pc) is within the memory bounds
         if (pc >= 0 && pc < memory.length) {
             return memory[pc];
         } else {
-            // Handle an out-of-bounds access or return an error code
-            return -1; // You can choose an appropriate error code
+            // Handle an out-of-bounds access
+            return 0x1C00000; // Force halt
         }
+    }
+
+    /**
+     * Get the memory array.
+     * @return the memory.
+     */
+    public int[] getMemory() {
+        return memory;
+    }
+
+    /**
+     * Get the register array.
+     * @return the registers.
+     */
+    public int[] getRegister() {
+        return register;
+    }
+
+    /**
+     * Get the current program counter.
+     * @return the current program counter
+     */
+    public int getPc(){
+        return pc ;
+    }
+
+    /**
+     * Set the next program counter.
+     * @param newPc is the next program counter to be set.
+     */
+    public void setNextPc(int newPc) {
+        nextPc = newPc;
+    }
+
+    /**
+     * Call the stage to halt.
+     */
+    public void setHalt() {
+        isHalt = true;
+    }
+
+    /**
+     * Print the details of the current state of the stage.
+     */
+    public void printState(){
+        sb.setLength(0); // clears the string builder
+
+        sb.append("@@@\nstate:\n").append("\tpc ").append(pc).append('\n');
+
+        sb.append("\tmemory:\n");
+        for(int i = 0; i < register[5]; i++)
+            sb.append("\t\tmem[").append(i).append("] ").append(memory[i]).append('\n');
+
+        sb.append("\tregisters:\n");
+        for(int i = 0; i < register.length; i++)
+            sb.append("\t\treg[").append(i).append("] ").append(register[i]).append('\n');
+
+        sb.append("end state\n\n");
+        System.out.println(sb);
     }
 }
