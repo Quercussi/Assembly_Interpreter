@@ -6,8 +6,8 @@ t0	noop				; temp 0
 sp	noop				; stack pointer
 t1	noop				; temp 1
 ra	noop				; return address
-m	.fill	-13			; input base
-e	.fill	5			; input power
+m	.fill	5			; input base
+e	.fill	13			; input power
 main	lw	0	sp	spAddr	; sp = stack
 	lw	0	a1	m	; set a1
 	lw	0	a2	e	; set a2
@@ -15,7 +15,31 @@ main	lw	0	sp	spAddr	; sp = stack
 	jalr	t0	ra		; call the function
 	halt
 powerA	.fill	power
-power	beq	0	a2	power0	; if e == 0 -> return 1
+power	beq	0	a2	1	; if e == 0 -> return 1
+	beq	0	0	2	; jump to next if
+	lw	0	a0	c1	
+	jalr	ra	0		
+	lw	0	t1	sign	; set t1 to sign
+	nand	a2	t1	a0	; check last bit of e
+	nand	a0	a0	a0
+	beq	a0	0	2	; if e < 0 -> return 0
+	add	0	0	a0	
+	jalr	ra	0
+	lw	0	t1	c2	; set t1 to 2
+	add	t1	sp	sp	; increment stack by 2
+	sw	sp	a1	-2	; temporarily save a1 at stack
+	sw	sp	ra	-1	; temporarily save ra at stack
+	lw	0	a1	c32	; set a1 to 32
+	lw	0	t1	sltA
+	jalr	t1	ra
+	lw	sp	ra	-1	; load ra back
+	lw	sp	a1	-2	; load a1 back
+	lw	0	t1	n2	; set t1 to 2
+	add	t1	sp	sp	; decrement stack by 2
+	beq	a0	0	2	; if e > 32 -> return INT_MAX
+	lw	0	a0	INTMAX
+	jalr	ra	0
+	noop				____UNDESIREABLES HANDLING____
 	lw	0	t1	c4	; store 4 at $6
 	add	sp	t1	sp	; increment stack by 4
 	sw	sp	a1	-4	; store $1 (input arg 1)
@@ -91,8 +115,6 @@ power	beq	0	a2	power0	; if e == 0 -> return 1
 	lw	0	t1	n4	; store -4 at t1
 	add	sp	t1	sp	; decrement stack by 4
 	jalr	ra	0		; return
-power0	lw	0	a0	c1	; if e == 0 -> return 1
-	jalr	ra	0
 	noop				##############################
 	noop				##############################
 facfA	.fill	facf
@@ -125,6 +147,7 @@ faclp  	lw  	sp  	a1  	-4	; set a1 to input array
       	sw  	a1  	t0 	0      	productTree[j] = t0 = i
       	add   	t1 	ra 	ra     	j += 1 
       	sw   	sp 	ra  	-5 
+	beq  	0   	0  	faclp  	go back to the beginning of loop 
 facdnc 	lw  	0   	t1   	n1    	t1 = -1   
       	add  	t1  	t0  	t0    	i -= 1
       	beq  	0   	0  	faclp  	go back to the beginning of loop 
@@ -289,6 +312,8 @@ c2	.fill	2
 c3	.fill	3
 c4	.fill	4
 c5	.fill	5
+c32	.fill	32
+INTMAX	.fill	2147483647
 n1	.fill	-1
 n2	.fill	-2
 n3	.fill	-3
