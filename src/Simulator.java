@@ -37,6 +37,7 @@ public class Simulator {
                 }
                 pc++;
             }
+            stage.setInstructionCount(pc);
         } catch (IOException e) {
             e.printStackTrace();
         }

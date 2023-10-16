@@ -6,6 +6,7 @@ public class Stage {
     private boolean isHalt;    // Halt flag
     private int stepCount;
     private final Decoder decoder;
+    private int instructionCount;
     private final StringBuilder sb = new StringBuilder();
 
     /**
@@ -102,6 +103,14 @@ public class Stage {
     }
 
     /**
+     * Set the number of memory addresses that is to be printed.
+     * @param newInstructionCount is the updating instruction count.
+     */
+    public void setInstructionCount(int newInstructionCount) {
+        instructionCount = newInstructionCount;
+    }
+
+    /**
      * Print the details of the current state of the stage.
      */
     public void printState(){
@@ -110,7 +119,7 @@ public class Stage {
         sb.append("@@@\nstate:\n").append("\tpc ").append(pc).append('\n');
 
         sb.append("\tmemory:\n");
-        for(int i = 0; i < register[5]; i++)
+        for(int i = 0; i < instructionCount; i++)
             sb.append("\t\tmem[").append(i).append("] ").append(memory[i]).append('\n');
 
         sb.append("\tregisters:\n");
