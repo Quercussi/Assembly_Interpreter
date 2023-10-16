@@ -10,8 +10,8 @@ pos1	.fill	1
 neg1	.fill	-1
 c65536	.fill	65536
 mulAdr	.fill	mul
-mcand	.fill	90
-mplier	.fill	90
+mcand	.fill	32766
+mplier	.fill	10383
 main	lw	0	sp	neg1
 	lw	0	a1	mcand	; assign a1
 	lw	0	a2	mplier	; assign a2

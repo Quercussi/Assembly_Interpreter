@@ -7,7 +7,7 @@ sp	noop				; stack pointer
 t1	noop				; temp 1
 ra	noop				; return address
 m	.fill	5			; input base
-e	.fill	13			; input power
+e	.fill	5			; input power
 main	lw	0	sp	spAddr	; sp = stack
 	lw	0	a1	m	; set a1
 	lw	0	a2	e	; set a2
